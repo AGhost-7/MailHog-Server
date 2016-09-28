@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"net/smtp"
+
 	"github.com/gorilla/pat"
 	"github.com/ian-kent/go-log/log"
 	"github.com/mailhog/MailHog-Server/config"
@@ -36,6 +38,8 @@ func createAPIv2(conf *config.Config, r *pat.Router) *APIv2 {
 
 	r.Path(conf.WebPath + "/api/v2/search").Methods("GET").HandlerFunc(apiv2.search)
 	r.Path(conf.WebPath + "/api/v2/search").Methods("OPTIONS").HandlerFunc(apiv2.defaultOptions)
+
+	r.Path(conf.WebPath + "/api/v2/send").Methods("POST").HandlerFunc(apiv2.send)
 
 	r.Path(conf.WebPath + "/api/v2/jim").Methods("GET").HandlerFunc(apiv2.jim)
 	r.Path(conf.WebPath + "/api/v2/jim").Methods("POST").HandlerFunc(apiv2.createJim)
@@ -151,6 +155,41 @@ func (apiv2 *APIv2) search(w http.ResponseWriter, req *http.Request) {
 	b, _ := json.Marshal(res)
 	w.Header().Add("Content-Type", "application/json")
 	w.Write(b)
+}
+
+type SendEmailReq {
+	from string
+	to string
+	subject string
+	body string
+	addr string
+}
+
+func (apiv2 *APIv2) send(w http.ResponseWriter, req *http.Request) {
+
+	decoder := json.NewDecoder(req.Body)
+	var rek SendEmailReq
+	err := decoder.Decode(&rek)
+
+	if err == nil {
+		w.WriteHeader(500)
+		return
+	}
+
+	addr := rek.addr
+
+	if addr == nil {
+		addr := apiv2.config.SMTPSendAddr
+	}
+
+	err := smtp.SendMail(addr, nil, rek.from, rek.to, rek.body)
+
+	if err == nil {
+		w.WriteHeader(200)
+	} else {
+		w.WriteHeader(500)
+		panic(err)
+	}
 }
 
 func (apiv2 *APIv2) jim(w http.ResponseWriter, req *http.Request) {
