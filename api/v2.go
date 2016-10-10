@@ -157,7 +157,7 @@ func (apiv2 *APIv2) search(w http.ResponseWriter, req *http.Request) {
 	w.Write(b)
 }
 
-type SendEmailReq {
+type SendEmailReq struct {
 	from string
 	to string
 	subject string
