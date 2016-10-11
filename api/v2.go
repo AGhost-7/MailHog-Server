@@ -176,13 +176,7 @@ func (apiv2 *APIv2) send(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	addr := rek.addr
-
-	if addr == nil {
-		addr := apiv2.config.SMTPSendAddr
-	}
-
-	err := smtp.SendMail(addr, nil, rek.from, rek.to, rek.body)
+	err = smtp.SendMail(apiv2.config.SMTPSendAddr, nil, rek.from, []string{rek.to}, []byte(rek.body))
 
 	if err == nil {
 		w.WriteHeader(200)
