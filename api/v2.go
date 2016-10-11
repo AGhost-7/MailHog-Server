@@ -162,7 +162,6 @@ type SendEmailReq struct {
 	to string
 	subject string
 	body string
-	addr string
 }
 
 func (apiv2 *APIv2) send(w http.ResponseWriter, req *http.Request) {
